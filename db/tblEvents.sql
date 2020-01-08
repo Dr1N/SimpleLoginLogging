@@ -1,0 +1,21 @@
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tblEvents](
+	[evID] Int IDENTITY(1,1) NOT NULL,
+	[ev_drvID] Int NULL,
+	[evTime] [datetime] NOT NULL
+CONSTRAINT [PK_tblEventsev_issID_evID] PRIMARY KEY CLUSTERED 
+(
+	[evID] ASC
+) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[tblEvents]  WITH CHECK ADD  CONSTRAINT [FK_tblDrivers_tblDrivers] FOREIGN KEY([ev_drvID])
+REFERENCES [dbo].[tblDrivers] ([drvID])
+GO
+ALTER TABLE [dbo].[tblEvents] CHECK CONSTRAINT [FK_tblDrivers_tblDrivers]
+GO
