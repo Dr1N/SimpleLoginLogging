@@ -53,6 +53,21 @@ namespace DAL
             throw new NotImplementedException();
         }
 
+        public void ClearDrivers()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddEvent(Event evnt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearEvents()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
