@@ -8,14 +8,14 @@ namespace DAL.Models
     public class Event
     {
         [Key]
-        [Column("[evID]")]
+        [Column("evID")]
         public int Id { get; set; }
 
-        [Column("[ev_drvID]")]
+        [Column("ev_drvID")]
         [ForeignKey("Driver")]
         public int DriverId { get; set; }
 
-        [Column("[evTime]")]
+        [Column("evTime")]
         [Required]
         public DateTime Time { get; set; }
     }

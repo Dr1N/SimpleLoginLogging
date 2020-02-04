@@ -12,14 +12,17 @@ namespace DAL.Models
 
         [Required]
         [Column("drvNumber")]
+        [MaxLength(20)]
         public string Number { get; set; }
 
         [Required]
-        [Column("[drvNameFirst]")]
+        [Column("drvNameFirst")]
+        [MaxLength(50)]
         public string FirstName { get; set; }
         
         [Required]
-        [Column("[drvNameLast]")]
+        [Column("drvNameLast")]
+        [MaxLength(50)]
         public string LastName { get; set; }
     }
 }

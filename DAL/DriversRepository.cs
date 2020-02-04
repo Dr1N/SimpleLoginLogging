@@ -5,11 +5,11 @@ using System;
 
 namespace DAL
 {
-    class DriversRepository : IDriversRepository
+    public class DriversRepository : IDriversRepository
     {
         #region Fields
 
-        private DbContext _context;
+        private readonly DriversContext _context;
 
         #endregion
 
@@ -50,12 +50,21 @@ namespace DAL
 
         public void AddDriver(Driver driver)
         {
-            throw new NotImplementedException();
+            if (driver == null)
+            {
+                throw new ArgumentNullException(nameof(driver));
+            }
+            _context.Drivers.Add(driver);
+            _context.SaveChanges();
         }
-
+        
         public void ClearDrivers()
         {
-            throw new NotImplementedException();
+            _context.Drivers.RemoveRange(_context.Drivers);
+            _context.SaveChanges();
+#pragma warning disable CS0618 // Type or member is obsolete
+            _context.Database.ExecuteSqlCommand($"DBCC CHECKIDENT ('tblDrivers', RESEED, 0)");
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public void AddEvent(Event evnt)
@@ -65,7 +74,11 @@ namespace DAL
 
         public void ClearEvents()
         {
-            throw new NotImplementedException();
+            _context.Events.RemoveRange(_context.Events);
+            _context.SaveChanges();
+#pragma warning disable CS0618 // Type or member is obsolete
+            _context.Database.ExecuteSqlCommand($"DBCC CHECKIDENT ('tblEvents', RESEED, 0)");
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         #endregion
