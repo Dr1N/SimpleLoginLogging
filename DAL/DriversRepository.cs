@@ -2,6 +2,8 @@
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DAL
 {
@@ -79,6 +81,16 @@ namespace DAL
 #pragma warning disable CS0618 // Type or member is obsolete
             _context.Database.ExecuteSqlCommand($"DBCC CHECKIDENT ('tblEvents', RESEED, 0)");
 #pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public IEnumerable<Driver> GetDrivers()
+        {
+            return _context.Drivers.ToList();
+        }
+
+        public IEnumerable<Event> GetEvents()
+        {
+            return _context.Events.ToList();
         }
 
         #endregion
