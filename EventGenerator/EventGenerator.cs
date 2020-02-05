@@ -72,13 +72,15 @@ namespace EventGenerator
                 return;
             }
 
-            while (!_tokenSource.IsCancellationRequested)
+            var token = _tokenSource.Token;
+            while (!token.IsCancellationRequested)
             {
                 foreach (var driver in drivers)
                 {
                     try
                     {
-                        var success = await SendEventRequest(GenerateEvent(driver));
+                        _tokenSource.Token.ThrowIfCancellationRequested();
+                        var success = await SendEventRequest(GenerateEvent(driver), _tokenSource.Token);
                         if (success)
                         {
                             Console.WriteLine($"Driver: { driver.Id } logged");
@@ -88,6 +90,10 @@ namespace EventGenerator
                             Console.WriteLine($"Driver: { driver.Id } error");
                         }
                         Thread.Sleep(250);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
                     }
                     catch (Exception ex)
                     {
@@ -141,7 +147,7 @@ namespace EventGenerator
             return new EventPayload(DateTime.Now, driver.Id);
         }
 
-        private async Task<bool> SendEventRequest(EventPayload eventPayload)
+        private async Task<bool> SendEventRequest(EventPayload eventPayload, CancellationToken token)
         {
             if (eventPayload == null)
             {
@@ -153,7 +159,7 @@ namespace EventGenerator
             {
                 var jsonString = JsonSerializer.Serialize(eventPayload);
                 using var httpClient = new HttpClient();
-                using var response = await httpClient.PostAsync(ENDPOINT, new StringContent(jsonString, Encoding.UTF8, CONTENT_TYPE));
+                using var response = await httpClient.PostAsync(ENDPOINT, new StringContent(jsonString, Encoding.UTF8, CONTENT_TYPE), token);
                 success = response.IsSuccessStatusCode;
             }
             catch (Exception ex)

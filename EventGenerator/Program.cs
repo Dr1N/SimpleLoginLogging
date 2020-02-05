@@ -13,6 +13,7 @@ namespace EventGenerator
 				generator.Start();
 				Console.ReadKey(true);
 				generator.Stop();
+				Console.ReadKey(true);
 			}
 			catch (Exception ex)
 			{
