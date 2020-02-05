@@ -1,5 +1,6 @@
 ﻿using DAL;
 using DAL.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +33,17 @@ namespace DriversGenerator
             {
                 Console.WriteLine($"Error. Critical: { ex.Message }");
             }
+        }
+
+        #region Private Methods
+
+        static string GetConnectionStringFromConfig()
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
+            return config.GetConnectionString("Default");
         }
 
         static IEnumerable<string> ReadNamesFromFile(string filePath)
@@ -90,21 +102,22 @@ namespace DriversGenerator
             return result;
         }
 
-        static void AddDrivers(IEnumerable<string> names)
+        static async void AddDrivers(IEnumerable<string> names)
         {
             if (names == null)
             {
                 throw new ArgumentNullException(nameof(names));
             }
 
-            using var repo = new DriversRepository();
-            repo.ClearDrivers();
+            using var repository = new DriversRepository(GetConnectionStringFromConfig());
+            await repository.ClearEventsAsync();
+            await repository.ClearDriversAsync();
             foreach (var name in names)
             {
                 try
                 {
                     var driver = CreateDriver(name);
-                    repo.AddDriver(driver);
+                    await repository.AddDriverAsync(driver);
                 }
                 catch (Exception ex)
                 {
@@ -122,7 +135,7 @@ namespace DriversGenerator
 
             var result = new Driver()
             {
-                Number = GenerateNumber(),
+                Number = GenerateDriverNumber(),
                 FirstName = name.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0],
                 LastName = name.Split(" ", StringSplitOptions.RemoveEmptyEntries)[1],
             };
@@ -130,9 +143,11 @@ namespace DriversGenerator
             return result;
         }
 
-        static string GenerateNumber()
+        static string GenerateDriverNumber()
         {
             return Guid.NewGuid().ToString().Replace("-", "").Substring(0, 20);
         }
+
+        #endregion
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
+using System.IO;
 
 namespace EventGenerator
 {
@@ -6,13 +8,14 @@ namespace EventGenerator
     {
         static void Main(string[] args)
         {
-			Console.WriteLine("Press any key to stop...");
+			Console.WriteLine("Press [Enter] to stop...");
 			try
 			{
-				using var generator = new EventGenerator();
+				using var generator = new EventGenerator(GetConnectionStringFromConfig());
 				generator.Start();
-				Console.ReadKey(true);
+				Console.ReadLine();
 				generator.Stop();
+				Console.WriteLine("Press any key to exit...");
 				Console.ReadKey(true);
 			}
 			catch (Exception ex)
@@ -20,5 +23,14 @@ namespace EventGenerator
 				Console.WriteLine($"Error. Critical: { ex.Message }");
 			}		
         }
+
+		static string GetConnectionStringFromConfig()
+		{
+			IConfiguration config = new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("appsettings.json", true, true)
+				.Build();
+			return config.GetConnectionString("Default");
+		}
     }
 }

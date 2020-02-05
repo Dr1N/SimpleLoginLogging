@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace DriverLoginEventsWebService.Controllers
 {
@@ -21,14 +22,20 @@ namespace DriverLoginEventsWebService.Controllers
 
         #endregion
 
+        #region Life
+
         public EventsController(IDriversRepository repository, ILogger<EventsController> logger)
         {
             _repository = repository;
             _logger = logger;
         }
 
+        #endregion
+
+        #region Actions
+
         [HttpPost]
-        public IActionResult Post(EventPayload payload)
+        public async Task<IActionResult> Post([FromBody]EventPayload payload)
         {
             if (payload == null)
             {
@@ -45,7 +52,7 @@ namespace DriverLoginEventsWebService.Controllers
                     return BadRequest();
                 }
 
-                AddLoginEvent(driver.Id, payload.EventTimestamp);
+                await AddLoginEvent(driver.Id, payload.EventTimestamp);
 
                 return StatusCode((int)HttpStatusCode.Created);
             }
@@ -56,14 +63,18 @@ namespace DriverLoginEventsWebService.Controllers
             }
         }
 
+        #endregion
+
         #region Private
 
         private Driver GetDriver(int driverId)
         {
-            return _repository.GetDrivers().Where(d => d.Id == driverId).FirstOrDefault();           
+            return _repository.GetDrivers()
+                .Where(d => d.Id == driverId)
+                .FirstOrDefault();           
         }
 
-        private void AddLoginEvent(int driverId, DateTime time)
+        private async Task AddLoginEvent(int driverId, DateTime time)
         {
             var loginEvent = new Event() 
             {
@@ -71,7 +82,7 @@ namespace DriverLoginEventsWebService.Controllers
                 Time = time,
             };
 
-            _repository.AddEvent(loginEvent);
+            await _repository.AddEventAsync(loginEvent);
         }
 
         #endregion

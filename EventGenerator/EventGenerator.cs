@@ -25,12 +25,38 @@ namespace EventGenerator
 
         private readonly CancellationTokenSource _tokenSource;
 
+        private readonly string _connectionString;
+
+        private IEnumerable<Driver> _drivers = null;
+
+        #endregion
+
+        #region Properties
+
+        public IEnumerable<Driver> Drivers 
+        { 
+            get
+            {
+                if (_drivers == null)
+                {
+                    _drivers = GetDrivers();
+                }
+
+                return _drivers;
+            }
+        }
+
         #endregion
 
         #region Life
 
-        public EventGenerator()
+        public EventGenerator(string connString)
         {
+            if (string.IsNullOrEmpty(connString))
+            {
+                throw new ArgumentException(nameof(connString));
+            }
+            _connectionString = connString;
             _tokenSource = new CancellationTokenSource();
         }
 
@@ -65,8 +91,7 @@ namespace EventGenerator
 
         public async void Start()
         {
-            var drivers = GetDrivers();
-            if (drivers.Count() == 0)
+            if (Drivers.Count() == 0)
             {
                 Console.WriteLine("Drivers table is empty!");
                 return;
@@ -75,21 +100,20 @@ namespace EventGenerator
             var token = _tokenSource.Token;
             while (!token.IsCancellationRequested)
             {
-                foreach (var driver in drivers)
+                foreach (var driver in Drivers)
                 {
                     try
                     {
                         _tokenSource.Token.ThrowIfCancellationRequested();
-                        var success = await SendEventRequest(GenerateEvent(driver), _tokenSource.Token);
+                        var success = await SendLoginEventRequestAsync(GenerateEventForDriver(driver), _tokenSource.Token);
                         if (success)
                         {
-                            Console.WriteLine($"Driver: { driver.Id } logged");
+                            Console.WriteLine($"Driver: { driver.Id }\tsuccess");
                         }
                         else
                         {
-                            Console.WriteLine($"Driver: { driver.Id } error");
+                            Console.WriteLine($"Driver: { driver.Id }\terror");
                         }
-                        Thread.Sleep(50);
                     }
                     catch (OperationCanceledException)
                     {
@@ -100,7 +124,6 @@ namespace EventGenerator
                         Console.WriteLine($"Error. Send event request: { ex.Message }");
                     }
                 }
-                break;
             }
         }
 
@@ -125,10 +148,8 @@ namespace EventGenerator
             var result = new List<Driver>();
             try
             {
-                using (var repo = new DriversRepository())
-                {
-                    result.AddRange(repo.GetDrivers());
-                }
+                using var repo = new DriversRepository(_connectionString);
+                result.AddRange(repo.GetDrivers());
             }
             catch (Exception ex)
             {
@@ -138,7 +159,7 @@ namespace EventGenerator
             return result;
         }
 
-        private EventPayload GenerateEvent(Driver driver)
+        private EventPayload GenerateEventForDriver(Driver driver)
         {
             if (driver == null)
             {
@@ -148,7 +169,7 @@ namespace EventGenerator
             return new EventPayload(DateTime.Now, driver.Id);
         }
 
-        private async Task<bool> SendEventRequest(EventPayload eventPayload, CancellationToken token)
+        private async Task<bool> SendLoginEventRequestAsync(EventPayload eventPayload, CancellationToken token)
         {
             if (eventPayload == null)
             {

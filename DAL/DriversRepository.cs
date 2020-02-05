@@ -1,9 +1,11 @@
 ﻿using DAL.Context;
+using DAL.Exceptions;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DAL
 {
@@ -17,9 +19,9 @@ namespace DAL
 
         #region Life
 
-        public DriversRepository()
+        public DriversRepository(string connStr)
         {
-            _context = new DriversContext();
+            _context = new DriversContext(connStr);
         }
 
         #region IDisposable Support
@@ -50,52 +52,95 @@ namespace DAL
 
         #region IDriversRepository Implementation
 
-        public void AddDriver(Driver driver)
+        public IEnumerable<Driver> GetDrivers()
+        {
+            try
+            {
+                return _context.Drivers.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
+        }
+
+        public async Task AddDriverAsync(Driver driver)
         {
             if (driver == null)
             {
                 throw new ArgumentNullException(nameof(driver));
             }
-            _context.Drivers.Add(driver);
-            _context.SaveChanges();
+            try
+            {
+                await _context.Drivers.AddAsync(driver);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
         }
         
-        public void ClearDrivers()
+        public async Task ClearDriversAsync()
         {
-            _context.Drivers.RemoveRange(_context.Drivers);
-            _context.SaveChanges();
+            try
+            {
+                _context.Drivers.RemoveRange(_context.Drivers);
+                await _context.SaveChangesAsync();
 #pragma warning disable CS0618 // Type or member is obsolete
-            _context.Database.ExecuteSqlCommand($"DBCC CHECKIDENT ('tblDrivers', RESEED, 0)");
+                await _context.Database.ExecuteSqlCommandAsync($"DBCC CHECKIDENT ('tblDrivers', RESEED, 0)");
 #pragma warning restore CS0618 // Type or member is obsolete
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
         }
 
-        public void AddEvent(Event evnt)
+        public IEnumerable<Event> GetEvents()
+        {
+            try
+            {
+                return _context.Events.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
+        }
+
+        public async Task AddEventAsync(Event evnt)
         {
             if (evnt == null)
             {
                 throw new ArgumentNullException(nameof(evnt));
             }
-            _context.Events.Add(evnt);
-            _context.SaveChanges();
+
+            try
+            {
+                await _context.Events.AddAsync(evnt);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
         }
 
-        public void ClearEvents()
+        public async Task ClearEventsAsync()
         {
-            _context.Events.RemoveRange(_context.Events);
-            _context.SaveChanges();
+            try
+            {
+                _context.Events.RemoveRange(_context.Events);
+                await _context.SaveChangesAsync();
 #pragma warning disable CS0618 // Type or member is obsolete
-            _context.Database.ExecuteSqlCommand($"DBCC CHECKIDENT ('tblEvents', RESEED, 0)");
+                await _context.Database.ExecuteSqlCommandAsync($"DBCC CHECKIDENT ('tblEvents', RESEED, 0)");
 #pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        public IEnumerable<Driver> GetDrivers()
-        {
-            return _context.Drivers.ToList();
-        }
-
-        public IEnumerable<Event> GetEvents()
-        {
-            return _context.Events.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new DataLayerException(ex);
+            }
         }
 
         #endregion

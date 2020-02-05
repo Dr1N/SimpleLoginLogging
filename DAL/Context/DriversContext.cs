@@ -1,21 +1,30 @@
 ﻿using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace DAL.Context
 {
     class DriversContext : DbContext
     {
-        // TODO: Move to application
-
-        private const string ConnectionString = @"Data Source=DR1N-MI\SQLEXPRESS;Initial Catalog=driversDb;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        private readonly string ConnString;
 
         internal DbSet<Driver> Drivers { get; set; }
 
         internal DbSet<Event> Events { get; set; }
 
+        public DriversContext(string connString)
+        {
+            if (string.IsNullOrEmpty(connString))
+            {
+                throw new ArgumentException(nameof(connString));
+            }
+
+            ConnString = connString;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(ConnectionString);
+            optionsBuilder.UseSqlServer(ConnString);
         }
     }
 }

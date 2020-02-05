@@ -1,21 +1,30 @@
 ﻿using DAL.Models;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DAL
 {
     public interface IDriversRepository : IDisposable
     {
+        #region Drivers
+
         public IEnumerable<Driver> GetDrivers();
 
-        public void AddDriver(Driver driver);
+        public Task AddDriverAsync(Driver driver);
 
-        public void ClearDrivers();
+        public Task ClearDriversAsync();
+
+        #endregion
+
+        #region Events
 
         public IEnumerable<Event> GetEvents();
 
-        public void AddEvent(Event evnt);
+        public Task AddEventAsync(Event evnt);
         
-        public void ClearEvents();
+        public Task ClearEventsAsync();
+
+        #endregion
     }
 }
