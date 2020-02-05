@@ -71,7 +71,12 @@ namespace DAL
 
         public void AddEvent(Event evnt)
         {
-            throw new NotImplementedException();
+            if (evnt == null)
+            {
+                throw new ArgumentNullException(nameof(evnt));
+            }
+            _context.Events.Add(evnt);
+            _context.SaveChanges();
         }
 
         public void ClearEvents()

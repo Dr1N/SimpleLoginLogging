@@ -89,8 +89,7 @@ namespace EventGenerator
                         {
                             Console.WriteLine($"Driver: { driver.Id } error");
                         }
-                        Thread.Sleep(250);
-                        break; // TODO: one for test
+                        Thread.Sleep(50);
                     }
                     catch (OperationCanceledException)
                     {
@@ -101,8 +100,7 @@ namespace EventGenerator
                         Console.WriteLine($"Error. Send event request: { ex.Message }");
                     }
                 }
-
-                break; // TODO: one for test
+                break;
             }
         }
 

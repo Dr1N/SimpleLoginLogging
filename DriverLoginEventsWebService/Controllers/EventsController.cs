@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Net;
 
 namespace DriverLoginEventsWebService.Controllers
 {
@@ -43,9 +44,10 @@ namespace DriverLoginEventsWebService.Controllers
                     _logger.LogError($"Not found driver with id: { payload.DriverId }");
                     return BadRequest();
                 }
-                var evnt = AddLoginEvent(driver.Id, payload.EventTimestamp);
 
-                return Ok(evnt);
+                AddLoginEvent(driver.Id, payload.EventTimestamp);
+
+                return StatusCode((int)HttpStatusCode.Created);
             }
             catch (Exception ex)
             {
@@ -61,7 +63,7 @@ namespace DriverLoginEventsWebService.Controllers
             return _repository.GetDrivers().Where(d => d.Id == driverId).FirstOrDefault();           
         }
 
-        private Event AddLoginEvent(int driverId, DateTime time)
+        private void AddLoginEvent(int driverId, DateTime time)
         {
             var loginEvent = new Event() 
             {
@@ -70,8 +72,6 @@ namespace DriverLoginEventsWebService.Controllers
             };
 
             _repository.AddEvent(loginEvent);
-
-            return loginEvent;
         }
 
         #endregion
