@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using DAL;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace DriverLoginEventsWebService
 {
@@ -39,6 +36,15 @@ namespace DriverLoginEventsWebService
             {
                 endpoints.MapControllers();
             });
+            app.UseExceptionHandler(a => a.Run(async context =>
+            {
+                var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+                var exception = feature.Error;
+
+                var result = JsonConvert.SerializeObject(new { error = exception.Message });
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(result);
+            }));
         }
     }
 }

@@ -1,6 +1,10 @@
-﻿using DAL.Payload;
+﻿using DAL;
+using DAL.Models;
+using DAL.Payload;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
 
 namespace DriverLoginEventsWebService.Controllers
 {
@@ -8,22 +12,68 @@ namespace DriverLoginEventsWebService.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
+        #region Fields
+
         private readonly ILogger<EventsController> _logger;
 
-        public EventsController(ILogger<EventsController> logger)
+        private readonly IDriversRepository _repository;
+
+        #endregion
+
+        public EventsController(IDriversRepository repository, ILogger<EventsController> logger)
         {
+            _repository = repository;
             _logger = logger;
         }
 
-        [HttpGet]
-        public IActionResult Get(EventPayload payload)
+        [HttpPost]
+        public IActionResult Post(EventPayload payload)
         {
             if (payload == null)
             {
-                _logger.LogWarning("Payload is null");
+                _logger.LogError("Payload is null");
                 return BadRequest();
             }
-            return new OkResult();
+
+            try
+            {
+                var driver = GetDriver(payload.DriverId);
+                if (driver == null)
+                {
+                    _logger.LogError($"Not found driver with id: { payload.DriverId }");
+                    return BadRequest();
+                }
+                var evnt = AddLoginEvent(driver.Id, payload.EventTimestamp);
+
+                return Ok(evnt);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest();
+            }
         }
+
+        #region Private
+
+        private Driver GetDriver(int driverId)
+        {
+            return _repository.GetDrivers().Where(d => d.Id == driverId).FirstOrDefault();           
+        }
+
+        private Event AddLoginEvent(int driverId, DateTime time)
+        {
+            var loginEvent = new Event() 
+            {
+                DriverId = driverId,
+                Time = time,
+            };
+
+            _repository.AddEvent(loginEvent);
+
+            return loginEvent;
+        }
+
+        #endregion
     }
 }
